@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 type Variant = "primary" | "secondary" | "tertiary" | "text";
-type Size = "md" | "lg";
+type Size = "md" | "lg" | "xl";
 
 type ButtonProps = ComponentProps<"button"> & {
   variant?: Variant;
@@ -13,7 +13,7 @@ type ButtonProps = ComponentProps<"button"> & {
 };
 
 const base =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400 disabled:pointer-events-none";
+  "inline-flex items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400 disabled:pointer-events-none";
 
 const variants: Record<Variant, string> = {
   primary:
@@ -26,8 +26,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  md: "px-3 text-body",
-  lg: "px-4 text-body-lg",
+  md: "h-11 gap-2 px-3 text-body",
+  lg: "h-11 gap-2 px-4 text-body-lg",
+  xl: "h-14 gap-3 px-6 text-body-lg lg:h-16 lg:gap-4 lg:px-8 lg:text-heading-3",
 };
 
 export function Button({
