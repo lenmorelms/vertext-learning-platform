@@ -30,6 +30,7 @@ type CourseCardProps = {
   level: string;
   duration: string;
   moduleCount: number;
+  layout?: "inline" | "stacked";
   className?: string;
 };
 
@@ -41,8 +42,46 @@ export function CourseCard({
   level,
   duration,
   moduleCount,
+  layout = "inline",
   className,
 }: CourseCardProps) {
+  if (layout === "stacked") {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "flex flex-col rounded-lg border border-line bg-white p-6 transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400 lg:min-h-[448px] lg:p-8",
+          className,
+        )}
+      >
+        <span className="flex size-22 items-center">{icon}</span>
+        <h3 className="mt-8 font-display text-2xl font-normal text-neutral-900">{courseTitle}</h3>
+        <p className="mt-5 text-body-lg leading-7 text-neutral-500">{summary}</p>
+        <div className="mt-auto pt-8">
+          <div
+            className={cn(
+              meta,
+              "-mx-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-line pt-6",
+            )}
+          >
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
+              <BarChartIcon size={16} />
+              {level}
+            </span>
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
+              <ClockIcon size={16} />
+              {duration}
+            </span>
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
+              <DocumentIcon size={16} />
+              {moduleCount} modules
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <Link
       href={href}

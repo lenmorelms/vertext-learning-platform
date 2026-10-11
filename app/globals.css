@@ -37,6 +37,11 @@
   --color-accent-100: #f0edf8;
   --color-success-500: #16a34a;
 
+  /* Warm page surfaces: outer canvas, content column, hairlines. */
+  --color-canvas: #f9f5f2;
+  --color-surface: #fcf8f7;
+  --color-line: #f4eeec;
+
   --text-display-1: 3rem;
   --text-display-1--line-height: 3.5rem;
   --text-display-1--font-weight: 700;
@@ -69,6 +74,15 @@
   --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.1);
   --shadow-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.12);
+}
+
+/* Faint diagonal hatch shown on the canvas outside the content column. */
+@utility bg-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 7px,
+    rgba(15, 23, 42, 0.03) 7px 8px
+  );
 }
 
 body {

@@ -1,26 +1,53 @@
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
+type FieldSize = "md" | "lg";
+
 type InputProps = ComponentProps<"input"> & {
   icon?: ReactNode;
   hint?: ReactNode;
+  fieldSize?: FieldSize;
 };
 
-export function Input({ icon, hint, className, ...props }: InputProps) {
+const fields: Record<FieldSize, string> = {
+  md: "h-11 gap-3 px-4",
+  lg: "h-16 gap-4 px-5 shadow-sm sm:h-24 sm:gap-5 sm:px-8",
+};
+
+const texts: Record<FieldSize, string> = {
+  md: "text-body",
+  lg: "text-body-lg sm:text-heading-2 sm:font-normal",
+};
+
+const hints: Record<FieldSize, string> = {
+  md: "px-1.5 py-0.5 text-small",
+  lg: "hidden text-body-lg sm:block sm:px-4 sm:py-3",
+};
+
+export function Input({ icon, hint, fieldSize = "md", className, ...props }: InputProps) {
   return (
     <label
       className={cn(
-        "flex h-11 items-center gap-3 rounded-md border border-neutral-200 bg-white px-4 transition-colors focus-within:border-primary-400",
+        "flex items-center rounded-md border border-neutral-200 bg-white transition-colors focus-within:border-primary-400",
+        fields[fieldSize],
         className,
       )}
     >
       {icon && <span className="shrink-0 text-neutral-700">{icon}</span>}
       <input
-        className="min-w-0 flex-1 bg-transparent text-body text-neutral-900 outline-none placeholder:text-neutral-500"
+        className={cn(
+          "min-w-0 flex-1 bg-transparent text-neutral-900 outline-none placeholder:text-neutral-500",
+          texts[fieldSize],
+        )}
         {...props}
       />
       {hint && (
-        <kbd className="shrink-0 rounded-sm border border-neutral-200 bg-neutral-50 px-1.5 py-0.5 font-sans text-small font-medium text-neutral-700">
+        <kbd
+          className={cn(
+            "shrink-0 rounded-sm border border-neutral-200 bg-neutral-50 font-sans font-medium text-neutral-700",
+            hints[fieldSize],
+          )}
+        >
           {hint}
         </kbd>
       )}
