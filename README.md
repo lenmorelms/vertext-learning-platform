@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Sanity
+
+Content lives in Sanity. The Studio is its own workspace in `studio/` and is not part of the Next.js app.
+
+```bash
+cd studio
+npm install
+cp .env.example .env   # then fill in the project id and dataset
+npm run dev            # Studio on http://localhost:3333
+```
+
+After changing a schema in `studio/schemaTypes/` or a query in `sanity/queries.ts`, regenerate the types and deploy the schema from `studio/`:
+
+```bash
+npm run typegen        # writes studio/schema.json and ../sanity.types.ts
+npm run deploy-schema
+```
+
+The web app reads the private dataset on the server only, through `sanity/data.ts`. It needs `SANITY_API_READ_TOKEN` in `.env.local` (see `.env.example`).
