@@ -1,4 +1,7 @@
-import { BellIcon, UserIcon } from "./icons";
+import { Suspense } from "react";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Button } from "./button";
+import { BellIcon } from "./icons";
 import { SiteNav } from "./site-nav";
 
 type Section = "courses" | "my-learning";
@@ -22,14 +25,24 @@ export function SiteHeader({ active }: { active?: Section }) {
         >
           <BellIcon size={26} />
         </button>
-        {/* Placeholder until Clerk provides the signed in user. */}
-        <span
-          role="img"
-          aria-label="Account"
-          className="flex size-10 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 lg:size-14"
-        >
-          <UserIcon />
-        </span>
+        <div className="flex min-h-10 items-center gap-2 sm:gap-3 lg:min-h-14">
+          {/* Auth state is request data, so it streams in behind a same size fallback. */}
+          <Suspense fallback={<span className="size-10 rounded-full bg-neutral-100 lg:size-14" />}>
+            <Show when="signed-out">
+              <SignInButton>
+                <Button variant="tertiary">Sign in</Button>
+              </SignInButton>
+              <SignUpButton>
+                <Button>Sign up</Button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton
+                appearance={{ elements: { userButtonAvatarBox: "size-10! lg:size-14!" } }}
+              />
+            </Show>
+          </Suspense>
+        </div>
       </div>
     </header>
   );
