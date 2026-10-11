@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent skill reference code, not part of the app:
+    "agent/**",
+    ".agents/**",
+    ".claude/**",
   ]),
 ]);
 
