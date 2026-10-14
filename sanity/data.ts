@@ -5,6 +5,7 @@ import {
   CATEGORIES_QUERY,
   COURSE_QUERY,
   COURSES_QUERY,
+  FEATURED_COURSES_QUERY,
   INSTRUCTOR_QUERY,
   LESSON_QUERY,
 } from "./queries";
@@ -14,6 +15,14 @@ export function getCourses() {
   return sanityFetch({
     query: COURSES_QUERY,
     tags: ["course", "lesson", "instructor", "category"],
+  });
+}
+
+/** The three courses featured on the home page. */
+export function getFeaturedCourses() {
+  return sanityFetch({
+    query: FEATURED_COURSES_QUERY,
+    tags: ["course", "lesson"],
   });
 }
 
