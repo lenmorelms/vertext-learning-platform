@@ -65,7 +65,7 @@ export const lesson = defineType({
       validation: (rule) => rule.required().integer().positive(),
     }),
     defineField({
-      name: "poster",
+      name: "thumbnail",
       description: "Thumbnail shown before the video plays and on search results.",
       type: "image",
       group: "video",
@@ -148,6 +148,6 @@ export const lesson = defineType({
     }),
   ],
   preview: {
-    select: { title: "title", subtitle: "summary", media: "poster" },
+    select: { title: "title", subtitle: "summary", media: "thumbnail" },
   },
 });

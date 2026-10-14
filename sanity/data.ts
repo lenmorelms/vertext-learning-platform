@@ -8,7 +8,10 @@ import {
   FEATURED_COURSES_QUERY,
   INSTRUCTOR_QUERY,
   LESSON_QUERY,
+  LESSON_SLUGS_QUERY,
+  SEARCH_LESSONS_QUERY,
 } from "./queries";
+import type { LessonResult } from "@/lib/search/types";
 
 /** Every course, for the catalog. */
 export function getCourses() {
@@ -44,12 +47,59 @@ export function getLessonBySlug(slug: string) {
   });
 }
 
+/** Every lesson slug, for prerendering lesson pages. */
+export function getLessonSlugs() {
+  return sanityFetch({ query: LESSON_SLUGS_QUERY, tags: ["lesson"] });
+}
+
 /** One instructor with their courses, or null when the slug matches nothing. */
 export function getInstructorBySlug(slug: string) {
   return sanityFetch({
     query: INSTRUCTOR_QUERY,
     params: { slug },
     tags: ["instructor", "course", "lesson"],
+  });
+}
+
+/**
+ * Search result cards for the given lesson ids, in the same order. Ids that are
+ * not lessons in a course are dropped, so a card is always backed by real data.
+ */
+export async function getSearchLessons(ids: string[]): Promise<LessonResult[]> {
+  if (ids.length === 0) return [];
+  const lessons = await sanityFetch({
+    query: SEARCH_LESSONS_QUERY,
+    params: { ids },
+    tags: ["lesson", "course"],
+  });
+  const byId = new Map(lessons.map((lesson) => [lesson._id, lesson]));
+
+  return ids.flatMap((id) => {
+    const lesson = byId.get(id);
+    if (!lesson?.course) return [];
+    const position = getLessonPosition(lesson.course.modules, lesson._id);
+    if (!position) return [];
+    const { course } = lesson;
+
+    return [
+      {
+        kind: "lesson" as const,
+        id: lesson._id,
+        title: lesson.title,
+        slug: lesson.slug,
+        description: lesson.summary,
+        keyPoints: lesson.keyPoints ?? [],
+        moduleNumber: position.moduleNumber,
+        lessonNumber: position.lessonNumber,
+        moduleTitle: course.modules?.[position.moduleNumber - 1]?.title ?? "",
+        course: {
+          id: course._id,
+          title: course.title,
+          slug: course.slug,
+          coverImage: course.coverImage?.asset ? course.coverImage : null,
+        },
+      },
+    ];
   });
 }
 

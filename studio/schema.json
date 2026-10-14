@@ -333,7 +333,7 @@
         },
         "optional": false
       },
-      "poster": {
+      "thumbnail": {
         "type": "objectAttribute",
         "value": {
           "type": "object",

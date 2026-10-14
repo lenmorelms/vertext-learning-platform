@@ -87,9 +87,10 @@ export const LESSON_QUERY = defineQuery(/* groq */ `
     _id,
     title,
     "slug": slug.current,
-    summary,
+    // With no authored summary, fall back to the first plain paragraph of the notes.
+    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),
     videoUrl,
-    poster{ ${imageFields} },
+    thumbnail{ ${imageFields} },
     duration,
     freePreview,
     studentCount,
@@ -112,6 +113,10 @@ export const LESSON_QUERY = defineQuery(/* groq */ `
       ${moduleOutline}
     }
   }
+`);
+
+export const LESSON_SLUGS_QUERY = defineQuery(/* groq */ `
+  *[_type == "lesson" && defined(slug.current)].slug.current
 `);
 
 export const INSTRUCTOR_QUERY = defineQuery(/* groq */ `
@@ -141,5 +146,24 @@ export const CATEGORIES_QUERY = defineQuery(/* groq */ `
     title,
     "slug": slug.current,
     description
+  }
+`);
+
+// Search results: the agent picks lesson ids, and the cards are built only from
+// this stored data. Lessons with no parent course are left out.
+export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
+  *[_type == "lesson" && _id in $ids && defined(slug.current)]{
+    _id,
+    title,
+    "slug": slug.current,
+    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),
+    keyPoints,
+    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{
+      _id,
+      title,
+      "slug": slug.current,
+      coverImage{ ${imageFields} },
+      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }
+    }
   }
 `);
