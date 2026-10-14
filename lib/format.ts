@@ -21,3 +21,8 @@ export function formatCompactCount(count: number) {
 export function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+/** A display count with separators, as "3,426". */
+export function formatCount(count: number) {
+  return new Intl.NumberFormat("en").format(count);
+}
