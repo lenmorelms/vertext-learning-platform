@@ -368,6 +368,25 @@ export type COURSES_QUERY_RESULT = Array<{
 }>;
 
 // Source: ../sanity/queries.ts
+// Variable: FEATURED_COURSES_QUERY
+// Query: *[_type == "course" && defined(slug.current)]    | order(popular desc, studentCount desc, title asc)[0...3] {    _id,    title,    "slug": slug.current,    summary,    coverImage{ asset, alt, hotspot, crop },    level,    "moduleCount": count(modules),    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)  }
+export type FEATURED_COURSES_QUERY_RESULT = Array<{
+  _id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  coverImage: {
+    asset: SanityImageAssetReference | null;
+    alt: string | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+  } | null;
+  level: "advanced" | "beginner" | "intermediate";
+  moduleCount: number | null;
+  durationSeconds: number | 0;
+}>;
+
+// Source: ../sanity/queries.ts
 // Variable: COURSE_QUERY
 // Query: *[_type == "course" && slug.current == $slug][0]{    _id,    title,    "slug": slug.current,    summary,    coverImage{ asset, alt, hotspot, crop },    level,    price,    popular,    studentCount,    learningOutcomes[]{ _key, icon, title, description },    "category": category->{ _id, title, "slug": slug.current },    "instructor": instructor->{      _id,      name,      "slug": slug.current,      photo{ asset, alt, hotspot, crop },      expertise,      bio    },    "moduleCount": count(modules),    "lessonCount": count(modules[].lessons[]),    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0),      modules[]{    _key,    title,    summary,    "durationSeconds": coalesce(math::sum(lessons[]->duration), 0),    "lessons": lessons[]->{      _id,      title,      "slug": slug.current,      duration,      freePreview    }  }  }
 export type COURSE_QUERY_RESULT = {
@@ -565,6 +584,7 @@ import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "course" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    coverImage{ asset, alt, hotspot, crop },\n    level,\n    price,\n    popular,\n    studentCount,\n    "category": category->{ _id, title, "slug": slug.current },\n    "instructor": instructor->{ _id, name, "slug": slug.current },\n    "moduleCount": count(modules),\n    "lessonCount": count(modules[].lessons[]),\n    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)\n  }\n': COURSES_QUERY_RESULT;
+    '\n  *[_type == "course" && defined(slug.current)]\n    | order(popular desc, studentCount desc, title asc)[0...3] {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    coverImage{ asset, alt, hotspot, crop },\n    level,\n    "moduleCount": count(modules),\n    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)\n  }\n': FEATURED_COURSES_QUERY_RESULT;
     '\n  *[_type == "course" && slug.current == $slug][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    coverImage{ asset, alt, hotspot, crop },\n    level,\n    price,\n    popular,\n    studentCount,\n    learningOutcomes[]{ _key, icon, title, description },\n    "category": category->{ _id, title, "slug": slug.current },\n    "instructor": instructor->{\n      _id,\n      name,\n      "slug": slug.current,\n      photo{ asset, alt, hotspot, crop },\n      expertise,\n      bio\n    },\n    "moduleCount": count(modules),\n    "lessonCount": count(modules[].lessons[]),\n    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0),\n    \n  modules[]{\n    _key,\n    title,\n    summary,\n    "durationSeconds": coalesce(math::sum(lessons[]->duration), 0),\n    "lessons": lessons[]->{\n      _id,\n      title,\n      "slug": slug.current,\n      duration,\n      freePreview\n    }\n  }\n\n  }\n': COURSE_QUERY_RESULT;
     '\n  *[_type == "lesson" && slug.current == $slug][0]{\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    videoUrl,\n    poster{ asset, alt, hotspot, crop },\n    duration,\n    freePreview,\n    studentCount,\n    notes,\n    keyPoints,\n    proTip,\n    resources[]{ _key, type, title, description, url },\n    "course": *[_type == "course" && references(^._id)][0]{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage{ asset, alt, hotspot, crop },\n      level,\n      "instructor": instructor->{\n        _id,\n        name,\n        "slug": slug.current,\n        photo{ asset, alt, hotspot, crop }\n      },\n      \n  modules[]{\n    _key,\n    title,\n    summary,\n    "durationSeconds": coalesce(math::sum(lessons[]->duration), 0),\n    "lessons": lessons[]->{\n      _id,\n      title,\n      "slug": slug.current,\n      duration,\n      freePreview\n    }\n  }\n\n    }\n  }\n': LESSON_QUERY_RESULT;
     '\n  *[_type == "instructor" && slug.current == $slug][0]{\n    _id,\n    name,\n    "slug": slug.current,\n    photo{ asset, alt, hotspot, crop },\n    expertise,\n    bio,\n    "courses": *[_type == "course" && references(^._id) && defined(slug.current)] | order(title asc) {\n      _id,\n      title,\n      "slug": slug.current,\n      summary,\n      coverImage{ asset, alt, hotspot, crop },\n      level,\n      "moduleCount": count(modules),\n      "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)\n    }\n  }\n': INSTRUCTOR_QUERY_RESULT;

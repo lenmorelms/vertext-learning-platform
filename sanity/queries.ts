@@ -38,6 +38,21 @@ export const COURSES_QUERY = defineQuery(/* groq */ `
   }
 `);
 
+// Home page row: popular first, then the most students.
+export const FEATURED_COURSES_QUERY = defineQuery(/* groq */ `
+  *[_type == "course" && defined(slug.current)]
+    | order(popular desc, studentCount desc, title asc)[0...3] {
+    _id,
+    title,
+    "slug": slug.current,
+    summary,
+    coverImage{ ${imageFields} },
+    level,
+    "moduleCount": count(modules),
+    "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)
+  }
+`);
+
 export const COURSE_QUERY = defineQuery(/* groq */ `
   *[_type == "course" && slug.current == $slug][0]{
     _id,
