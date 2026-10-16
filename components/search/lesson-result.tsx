@@ -6,7 +6,7 @@ import { ChevronRightIcon, DocumentIcon, ExternalLinkIcon } from "@/components/u
 import type { LessonResult } from "@/lib/search/types";
 import { urlFor } from "@/sanity/lib/image";
 
-function CourseIcon({ image, size }: { image: SanityImageSource | null; size: number }) {
+export function CourseIcon({ image, size }: { image: SanityImageSource | null; size: number }) {
   if (!image) return <DocumentIcon size={size} className="shrink-0 text-neutral-700" />;
   return (
     <Image

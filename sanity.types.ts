@@ -56,6 +56,33 @@ export type Module = {
   >;
 };
 
+export type Video = {
+  _id: string;
+  _type: "video";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  provider?: "youtube";
+  videoId?: string;
+  url?: string;
+  durationSeconds?: number;
+  chapters?: Array<{
+    startSeconds?: number;
+    label?: string;
+    _type: "chapter";
+    _key: string;
+  }>;
+  chunks?: Array<{
+    startSeconds?: number;
+    text?: string;
+    _type: "chunk";
+    _key: string;
+  }>;
+  chapterSource?: "authored" | "description" | "none";
+  ingestedAt?: string;
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -315,6 +342,7 @@ export type AllSanitySchemaTypes =
   | LearningOutcome
   | LessonReference
   | Module
+  | Video
   | SanityImageAssetReference
   | Lesson
   | SanityImageCrop
@@ -586,13 +614,21 @@ export type CATEGORIES_QUERY_RESULT = Array<{
 
 // Source: ../sanity/queries.ts
 // Variable: SEARCH_LESSONS_QUERY
-// Query: *[_type == "lesson" && _id in $ids && defined(slug.current)]{    _id,    title,    "slug": slug.current,    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),    keyPoints,    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{      _id,      title,      "slug": slug.current,      coverImage{ asset, alt, hotspot, crop },      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }    }  }
+// Query: *[_type == "lesson" && _id in $ids && defined(slug.current)]{    _id,    title,    "slug": slug.current,    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),    keyPoints,    videoUrl,    thumbnail{ asset, alt, hotspot, crop },    duration,    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{      _id,      title,      "slug": slug.current,      coverImage{ asset, alt, hotspot, crop },      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }    }  }
 export type SEARCH_LESSONS_QUERY_RESULT = Array<{
   _id: string;
   title: string;
   slug: string;
   summary: string;
   keyPoints: Array<string> | null;
+  videoUrl: string;
+  thumbnail: {
+    asset: SanityImageAssetReference | null;
+    alt: string | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+  } | null;
+  duration: number;
   course: {
     _id: string;
     title: string;
@@ -612,6 +648,16 @@ export type SEARCH_LESSONS_QUERY_RESULT = Array<{
   } | null;
 }>;
 
+// Source: ../sanity/queries.ts
+// Variable: SEARCH_VIDEOS_QUERY
+// Query: *[_type == "video" && _id in $ids]{    _id,    url,    "chapterStarts": chapters[].startSeconds,    "chunkStarts": chunks[].startSeconds  }
+export type SEARCH_VIDEOS_QUERY_RESULT = Array<{
+  _id: string;
+  url: string | null;
+  chapterStarts: Array<number | null> | null;
+  chunkStarts: Array<number | null> | null;
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -623,6 +669,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "lesson" && defined(slug.current)].slug.current\n': LESSON_SLUGS_QUERY_RESULT;
     '\n  *[_type == "instructor" && slug.current == $slug][0]{\n    _id,\n    name,\n    "slug": slug.current,\n    photo{ asset, alt, hotspot, crop },\n    expertise,\n    bio,\n    "courses": *[_type == "course" && references(^._id) && defined(slug.current)] | order(title asc) {\n      _id,\n      title,\n      "slug": slug.current,\n      summary,\n      coverImage{ asset, alt, hotspot, crop },\n      level,\n      "moduleCount": count(modules),\n      "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)\n    }\n  }\n': INSTRUCTOR_QUERY_RESULT;
     '\n  *[_type == "category" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    description\n  }\n': CATEGORIES_QUERY_RESULT;
-    '\n  *[_type == "lesson" && _id in $ids && defined(slug.current)]{\n    _id,\n    title,\n    "slug": slug.current,\n    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),\n    keyPoints,\n    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage{ asset, alt, hotspot, crop },\n      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }\n    }\n  }\n': SEARCH_LESSONS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && _id in $ids && defined(slug.current)]{\n    _id,\n    title,\n    "slug": slug.current,\n    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),\n    keyPoints,\n    videoUrl,\n    thumbnail{ asset, alt, hotspot, crop },\n    duration,\n    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage{ asset, alt, hotspot, crop },\n      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }\n    }\n  }\n': SEARCH_LESSONS_QUERY_RESULT;
+    '\n  *[_type == "video" && _id in $ids]{\n    _id,\n    url,\n    "chapterStarts": chapters[].startSeconds,\n    "chunkStarts": chunks[].startSeconds\n  }\n': SEARCH_VIDEOS_QUERY_RESULT;
   }
 }

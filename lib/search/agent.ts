@@ -6,15 +6,32 @@ import { generateText, Output, stepCountIs } from "ai";
 import { z } from "zod";
 
 import { buildSystemPrompt } from "./prompt";
+import type { SearchPick } from "./types";
 
 const DEFAULT_MODEL = "gpt-5.4-mini";
-const MAX_STEPS = 8;
+const MAX_STEPS = 12;
 const MAX_RESULTS = 60;
 
+// Flat with nullable fields rather than a union, so it stays a valid strict
+// structured output schema.
 const outputSchema = z.object({
-  lessonIds: z
-    .array(z.string())
-    .describe("Lesson _id values returned by your queries, best match first."),
+  results: z
+    .array(
+      z.object({
+        kind: z.enum(["lesson", "video"]),
+        lessonId: z.string().describe("The lesson _id."),
+        videoId: z
+          .string()
+          .nullable()
+          .describe("For kind video: the video document _id. Otherwise null."),
+        startSeconds: z
+          .number()
+          .int()
+          .nullable()
+          .describe("For kind video: the matched chapter or chunk startSeconds. Otherwise null."),
+      }),
+    )
+    .describe("Every relevant result, best match first, at most one per lesson."),
 });
 
 function getConfig() {
@@ -47,10 +64,14 @@ function getInitialContext(mcpUrl: string, token: string) {
 }
 
 /**
- * Asks the LLM to find lessons for `query` through the Sanity Context MCP.
- * Returns lesson ids only, best first. The caller loads the lessons itself.
+ * Asks the LLM to find lessons and video moments for `query` through the Sanity
+ * Context MCP. Returns ids and seconds only, best first. The caller verifies
+ * them and loads the cards itself.
  */
-export async function findLessonIds(query: string, { onToolCall }: { onToolCall?: () => void } = {}) {
+export async function findSearchPicks(
+  query: string,
+  { onToolCall }: { onToolCall?: () => void } = {},
+): Promise<SearchPick[]> {
   const { mcpUrl, token, model } = getConfig();
   let mcpClient: MCPClient | null = null;
 
@@ -80,7 +101,16 @@ export async function findLessonIds(query: string, { onToolCall }: { onToolCall?
       onToolExecutionStart: () => onToolCall?.(),
     });
 
-    return [...new Set(output.lessonIds)].slice(0, MAX_RESULTS);
+    return output.results.slice(0, MAX_RESULTS).map((result): SearchPick =>
+      result.kind === "video" && result.videoId && result.startSeconds !== null
+        ? {
+            kind: "video",
+            lessonId: result.lessonId,
+            videoId: result.videoId,
+            startSeconds: result.startSeconds,
+          }
+        : { kind: "lesson", lessonId: result.lessonId },
+    );
   } finally {
     await mcpClient?.close();
   }

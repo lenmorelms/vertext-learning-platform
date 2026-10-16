@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { findLessonIds } from "@/lib/search/agent";
+import { findSearchPicks } from "@/lib/search/agent";
 import {
   QUERY_MAX_LENGTH,
   QUERY_MIN_LENGTH,
   type SearchEvent,
 } from "@/lib/search/types";
-import { getSearchLessons } from "@/sanity/data";
+import { getSearchResults } from "@/sanity/data";
 
 const requestSchema = z.object({
   query: z.string().trim().min(QUERY_MIN_LENGTH).max(QUERY_MAX_LENGTH),
@@ -35,10 +35,10 @@ export async function POST(request: Request) {
 
       send({ type: "status", stage: "searching" });
       try {
-        const ids = await findLessonIds(query, {
+        const picks = await findSearchPicks(query, {
           onToolCall: () => send({ type: "status", stage: "searching" }),
         });
-        const results = await getSearchLessons(ids);
+        const results = await getSearchResults(picks);
         const courseCount = new Set(results.map((result) => result.course.id)).size;
         send({ type: "results", results, courseCount });
       } catch (error) {

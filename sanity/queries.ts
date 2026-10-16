@@ -158,6 +158,9 @@ export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
     "slug": slug.current,
     "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),
     keyPoints,
+    videoUrl,
+    thumbnail{ ${imageFields} },
+    duration,
     "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{
       _id,
       title,
@@ -165,5 +168,15 @@ export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
       coverImage{ ${imageFields} },
       modules[]{ title, "lessons": lessons[]{ "_id": _ref } }
     }
+  }
+`);
+
+// Video moment checks: start seconds only, never transcript text.
+export const SEARCH_VIDEOS_QUERY = defineQuery(/* groq */ `
+  *[_type == "video" && _id in $ids]{
+    _id,
+    url,
+    "chapterStarts": chapters[].startSeconds,
+    "chunkStarts": chunks[].startSeconds
   }
 `);

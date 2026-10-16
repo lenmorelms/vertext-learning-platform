@@ -7,6 +7,7 @@ import type { SearchEvent, SearchResult } from "@/lib/search/types";
 import { LessonResultCard, LessonResultSkeleton } from "./lesson-result";
 import { SearchFooter } from "./search-footer";
 import { SearchForm } from "./search-form";
+import { VideoResultCard, VideoResultSkeleton } from "./video-result";
 
 type Sort = "relevance" | "course" | "order";
 
@@ -119,9 +120,9 @@ export function SearchResults({ query }: { query: string }) {
         {state.status === "loading" && (
           <div aria-busy="true" className="flex flex-col gap-3">
             <span className="sr-only">Loading results</span>
-            {Array.from({ length: 3 }, (_, index) => (
-              <LessonResultSkeleton key={index} />
-            ))}
+            {Array.from({ length: 4 }, (_, index) =>
+              index % 2 === 0 ? <VideoResultSkeleton key={index} /> : <LessonResultSkeleton key={index} />,
+            )}
           </div>
         )}
 
@@ -170,7 +171,11 @@ export function SearchResults({ query }: { query: string }) {
             <ol className="mt-4 flex flex-col gap-3">
               {sorted.map((result) => (
                 <li key={result.id}>
-                  <LessonResultCard result={result} />
+                  {result.kind === "video" ? (
+                    <VideoResultCard result={result} />
+                  ) : (
+                    <LessonResultCard result={result} />
+                  )}
                 </li>
               ))}
             </ol>
