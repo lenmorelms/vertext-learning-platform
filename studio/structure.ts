@@ -9,4 +9,6 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       S.documentTypeListItem("instructor").title("Instructors"),
       S.documentTypeListItem("category").title("Categories"),
+      S.divider(),
+      S.documentTypeListItem("video").title("Videos (generated)"),
     ]);
