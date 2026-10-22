@@ -27,10 +27,17 @@ export function parseVideoUrl(videoUrl: string): ParsedVideo | null {
   return id && YOUTUBE_ID.test(id) ? { provider: "youtube", id } : null;
 }
 
-/** The provider's own player, starting at `startSeconds`. */
+/**
+ * The provider's own player. A deep link to `startSeconds` also autoplays, so
+ * the learner lands on the moment; if the browser blocks it, the player stays
+ * cued at that second.
+ */
 export function getEmbedUrl(video: ParsedVideo, startSeconds = 0) {
   const params = new URLSearchParams({ rel: "0", modestbranding: "1" });
-  if (startSeconds > 0) params.set("start", String(startSeconds));
+  if (startSeconds > 0) {
+    params.set("start", String(startSeconds));
+    params.set("autoplay", "1");
+  }
   return `https://www.youtube-nocookie.com/embed/${video.id}?${params}`;
 }
 

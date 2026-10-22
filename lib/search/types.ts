@@ -23,20 +23,23 @@ export type LessonResult = ResultBase & {
   keyPoints: string[];
 };
 
-/** A lesson's video matched at a chapter or transcript chunk start. */
+/** A lesson's video matched at a chapter start, or a transcript chunk start when no chapter matched. */
 export type VideoResult = ResultBase & {
   kind: "video";
   thumbnail: SanityImageSource | null;
   durationSeconds: number;
   startSeconds: number;
+  /** Which stage found the second. Not rendered. */
+  momentSource: "chapter" | "transcript";
 };
 
 export type SearchResult = LessonResult | VideoResult;
 
-/** What the agent picks. The server verifies and hydrates each one. */
-export type SearchPick =
-  | { kind: "lesson"; lessonId: string }
-  | { kind: "video"; lessonId: string; videoId: string; startSeconds: number };
+/**
+ * What the agent picks. "video" means the lesson's video covers the topic; the
+ * server resolves the second itself and hydrates every field.
+ */
+export type SearchPick = { kind: "lesson" | "video"; lessonId: string };
 
 /** One line of the `/api/search` NDJSON stream. */
 export type SearchEvent =

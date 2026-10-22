@@ -12,26 +12,20 @@ const DEFAULT_MODEL = "gpt-5.4-mini";
 const MAX_STEPS = 12;
 const MAX_RESULTS = 60;
 
-// Flat with nullable fields rather than a union, so it stays a valid strict
-// structured output schema.
 const outputSchema = z.object({
   results: z
     .array(
       z.object({
-        kind: z.enum(["lesson", "video"]),
+        kind: z
+          .enum(["lesson", "video"])
+          .describe(`"video" when the lesson's video matched on a chapter or transcript chunk.`),
         lessonId: z.string().describe("The lesson _id."),
-        videoId: z
-          .string()
-          .nullable()
-          .describe("For kind video: the video document _id. Otherwise null."),
-        startSeconds: z
-          .number()
-          .int()
-          .nullable()
-          .describe("For kind video: the matched chapter or chunk startSeconds. Otherwise null."),
       }),
     )
     .describe("Every relevant result, best match first, at most one per lesson."),
+  terms: z
+    .array(z.string())
+    .describe("The keyword stems you matched with, without the * wildcard."),
 });
 
 function getConfig() {
@@ -64,14 +58,14 @@ function getInitialContext(mcpUrl: string, token: string) {
 }
 
 /**
- * Asks the LLM to find lessons and video moments for `query` through the Sanity
- * Context MCP. Returns ids and seconds only, best first. The caller verifies
- * them and loads the cards itself.
+ * Asks the LLM to find lessons for `query` through the Sanity Context MCP.
+ * Returns lesson ids best first, each marked lesson or video, plus the terms it
+ * matched with. The caller resolves video seconds and loads the cards itself.
  */
 export async function findSearchPicks(
   query: string,
   { onToolCall }: { onToolCall?: () => void } = {},
-): Promise<SearchPick[]> {
+): Promise<{ picks: SearchPick[]; terms: string[] }> {
   const { mcpUrl, token, model } = getConfig();
   let mcpClient: MCPClient | null = null;
 
@@ -101,16 +95,12 @@ export async function findSearchPicks(
       onToolExecutionStart: () => onToolCall?.(),
     });
 
-    return output.results.slice(0, MAX_RESULTS).map((result): SearchPick =>
-      result.kind === "video" && result.videoId && result.startSeconds !== null
-        ? {
-            kind: "video",
-            lessonId: result.lessonId,
-            videoId: result.videoId,
-            startSeconds: result.startSeconds,
-          }
-        : { kind: "lesson", lessonId: result.lessonId },
-    );
+    return {
+      picks: output.results
+        .slice(0, MAX_RESULTS)
+        .map(({ kind, lessonId }): SearchPick => ({ kind, lessonId })),
+      terms: output.terms,
+    };
   } finally {
     await mcpClient?.close();
   }

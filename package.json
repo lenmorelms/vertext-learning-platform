@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "eval:search": "node --no-warnings --conditions=react-server --env-file=.env.local scripts/eval-search.mts"
   },
   "dependencies": {
     "@ai-sdk/mcp": "^2.0.74",
