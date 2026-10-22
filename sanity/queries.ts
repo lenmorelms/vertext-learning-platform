@@ -158,7 +158,6 @@ export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
     "slug": slug.current,
     "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),
     keyPoints,
-    videoUrl,
     thumbnail{ ${imageFields} },
     duration,
     "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{
@@ -171,12 +170,19 @@ export const SEARCH_LESSONS_QUERY = defineQuery(/* groq */ `
   }
 `);
 
-// Video moment checks: start seconds only, never transcript text.
-export const SEARCH_VIDEOS_QUERY = defineQuery(/* groq */ `
-  *[_type == "video" && _id in $ids]{
+// Video moments for two stage resolution. Only the chapters and transcript
+// chunks matching any term are loaded, never whole arrays. GROQ `match` against
+// an array of patterns means AND, so the OR is spelled out over eight fixed
+// slots (`toTermParams` fills unused ones). Read on the server only, to score.
+const chapterMatch = /* groq */ `label match $t0 || label match $t1 || label match $t2 || label match $t3 || label match $t4 || label match $t5 || label match $t6 || label match $t7`;
+const chunkMatch = /* groq */ `text match $t0 || text match $t1 || text match $t2 || text match $t3 || text match $t4 || text match $t5 || text match $t6 || text match $t7`;
+
+export const SEARCH_MOMENTS_QUERY = defineQuery(/* groq */ `
+  *[_type == "lesson" && _id in $ids]{
     _id,
-    url,
-    "chapterStarts": chapters[].startSeconds,
-    "chunkStarts": chunks[].startSeconds
+    "video": *[_type == "video" && url == ^.videoUrl][0]{
+      "chapters": chapters[${chapterMatch}]{ startSeconds, "text": label },
+      "chunks": chunks[${chunkMatch}][0...40]{ startSeconds, text }
+    }
   }
 `);

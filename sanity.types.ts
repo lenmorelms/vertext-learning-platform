@@ -614,14 +614,13 @@ export type CATEGORIES_QUERY_RESULT = Array<{
 
 // Source: ../sanity/queries.ts
 // Variable: SEARCH_LESSONS_QUERY
-// Query: *[_type == "lesson" && _id in $ids && defined(slug.current)]{    _id,    title,    "slug": slug.current,    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),    keyPoints,    videoUrl,    thumbnail{ asset, alt, hotspot, crop },    duration,    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{      _id,      title,      "slug": slug.current,      coverImage{ asset, alt, hotspot, crop },      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }    }  }
+// Query: *[_type == "lesson" && _id in $ids && defined(slug.current)]{    _id,    title,    "slug": slug.current,    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),    keyPoints,    thumbnail{ asset, alt, hotspot, crop },    duration,    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{      _id,      title,      "slug": slug.current,      coverImage{ asset, alt, hotspot, crop },      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }    }  }
 export type SEARCH_LESSONS_QUERY_RESULT = Array<{
   _id: string;
   title: string;
   slug: string;
   summary: string;
   keyPoints: Array<string> | null;
-  videoUrl: string;
   thumbnail: {
     asset: SanityImageAssetReference | null;
     alt: string | null;
@@ -649,13 +648,20 @@ export type SEARCH_LESSONS_QUERY_RESULT = Array<{
 }>;
 
 // Source: ../sanity/queries.ts
-// Variable: SEARCH_VIDEOS_QUERY
-// Query: *[_type == "video" && _id in $ids]{    _id,    url,    "chapterStarts": chapters[].startSeconds,    "chunkStarts": chunks[].startSeconds  }
-export type SEARCH_VIDEOS_QUERY_RESULT = Array<{
+// Variable: SEARCH_MOMENTS_QUERY
+// Query: *[_type == "lesson" && _id in $ids]{    _id,    "video": *[_type == "video" && url == ^.videoUrl][0]{      "chapters": chapters[label match $t0 || label match $t1 || label match $t2 || label match $t3 || label match $t4 || label match $t5 || label match $t6 || label match $t7]{ startSeconds, "text": label },      "chunks": chunks[text match $t0 || text match $t1 || text match $t2 || text match $t3 || text match $t4 || text match $t5 || text match $t6 || text match $t7][0...40]{ startSeconds, text }    }  }
+export type SEARCH_MOMENTS_QUERY_RESULT = Array<{
   _id: string;
-  url: string | null;
-  chapterStarts: Array<number | null> | null;
-  chunkStarts: Array<number | null> | null;
+  video: {
+    chapters: Array<{
+      startSeconds: number | null;
+      text: string | null;
+    }> | null;
+    chunks: Array<{
+      startSeconds: number | null;
+      text: string | null;
+    }> | null;
+  } | null;
 }>;
 
 // Query TypeMap
@@ -669,7 +675,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "lesson" && defined(slug.current)].slug.current\n': LESSON_SLUGS_QUERY_RESULT;
     '\n  *[_type == "instructor" && slug.current == $slug][0]{\n    _id,\n    name,\n    "slug": slug.current,\n    photo{ asset, alt, hotspot, crop },\n    expertise,\n    bio,\n    "courses": *[_type == "course" && references(^._id) && defined(slug.current)] | order(title asc) {\n      _id,\n      title,\n      "slug": slug.current,\n      summary,\n      coverImage{ asset, alt, hotspot, crop },\n      level,\n      "moduleCount": count(modules),\n      "durationSeconds": coalesce(math::sum(modules[].lessons[]->duration), 0)\n    }\n  }\n': INSTRUCTOR_QUERY_RESULT;
     '\n  *[_type == "category" && defined(slug.current)] | order(title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    description\n  }\n': CATEGORIES_QUERY_RESULT;
-    '\n  *[_type == "lesson" && _id in $ids && defined(slug.current)]{\n    _id,\n    title,\n    "slug": slug.current,\n    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),\n    keyPoints,\n    videoUrl,\n    thumbnail{ asset, alt, hotspot, crop },\n    duration,\n    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage{ asset, alt, hotspot, crop },\n      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }\n    }\n  }\n': SEARCH_LESSONS_QUERY_RESULT;
-    '\n  *[_type == "video" && _id in $ids]{\n    _id,\n    url,\n    "chapterStarts": chapters[].startSeconds,\n    "chunkStarts": chunks[].startSeconds\n  }\n': SEARCH_VIDEOS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && _id in $ids && defined(slug.current)]{\n    _id,\n    title,\n    "slug": slug.current,\n    "summary": coalesce(summary, pt::text(notes[style == "normal" && !defined(listItem)][0])),\n    keyPoints,\n    thumbnail{ asset, alt, hotspot, crop },\n    duration,\n    "course": *[_type == "course" && references(^._id) && defined(slug.current)][0]{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage{ asset, alt, hotspot, crop },\n      modules[]{ title, "lessons": lessons[]{ "_id": _ref } }\n    }\n  }\n': SEARCH_LESSONS_QUERY_RESULT;
+    '\n  *[_type == "lesson" && _id in $ids]{\n    _id,\n    "video": *[_type == "video" && url == ^.videoUrl][0]{\n      "chapters": chapters[label match $t0 || label match $t1 || label match $t2 || label match $t3 || label match $t4 || label match $t5 || label match $t6 || label match $t7]{ startSeconds, "text": label },\n      "chunks": chunks[text match $t0 || text match $t1 || text match $t2 || text match $t3 || text match $t4 || text match $t5 || text match $t6 || text match $t7][0...40]{ startSeconds, text }\n    }\n  }\n': SEARCH_MOMENTS_QUERY_RESULT;
   }
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { findSearchPicks } from "@/lib/search/agent";
+import { buildMatchTerms } from "@/lib/search/moments";
 import {
   QUERY_MAX_LENGTH,
   QUERY_MIN_LENGTH,
@@ -35,10 +36,10 @@ export async function POST(request: Request) {
 
       send({ type: "status", stage: "searching" });
       try {
-        const picks = await findSearchPicks(query, {
+        const { picks, terms } = await findSearchPicks(query, {
           onToolCall: () => send({ type: "status", stage: "searching" }),
         });
-        const results = await getSearchResults(picks);
+        const results = await getSearchResults(picks, buildMatchTerms(query, terms));
         const courseCount = new Set(results.map((result) => result.course.id)).size;
         send({ type: "results", results, courseCount });
       } catch (error) {
